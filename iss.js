@@ -11,12 +11,8 @@ const request = require("request");
 
 const fetchMyIp = function(callback) {
   request("https://api.ipify.org?format=json", (error, response, body) => {
-    if (!error) {
-      //body is returned as {"ip":"66.207.199.230"}
-      //after parse and selecting key, returns 66.207.199.230
-      const ipString = (JSON.parse(body)).ip;
-      callback(null, ipString);
-    } else {
+    
+    if (error) {
       //if there is an error (invalid domain, user is offline, etc)
       return callback(error, null);
     }
@@ -28,7 +24,28 @@ const fetchMyIp = function(callback) {
       return;
     }
 
-  });
+    //body is returned as {"ip":"66.207.199.230"}
+      //after parse and selecting key, returns 66.207.199.230
+    const ipString = (JSON.parse(body)).ip;
+    callback(null, ipString);
+    
+  })
 };
 
-module.exports = {fetchMyIp};
+const fetchCoordsByIp = function(ip, callback2) {
+  request(`https://ipvigilante.com/${ip}`, (error, response, body) => {
+
+    if (body.statusCode !== 200) {
+      const msg = `Status Code ${response.statusCode} when fetching for IP: ${ip}.`
+      callback2(Error(msg), null);
+    } else {
+      if (!error) {
+        const longitude = (JSON.parse(body))["data"].longitude;
+        const latitude = (JSON.parse(body))["data"].latitude;
+        callback2(error, {latitude, longitude});
+      }
+    }
+  })
+}
+
+module.exports = {fetchMyIp, fetchCoordsByIp};
